@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <title>Xiangqi 象棋</title>
+  <meta name="description" content="Two-player pass-and-play Chinese Chess (Xiangqi) that installs to your Home Screen and works fully offline.">
+  <meta name="theme-color" content="#3a2614">
+  <meta name="color-scheme" content="dark">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- iOS / iPadOS Home Screen app -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Xiangqi">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-180.png">
+
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div id="app">
+    <div id="install-banner" class="banner" hidden>
+      <span class="banner-text">Install: tap <b>Share</b> then <b>Add to Home Screen</b> to play offline.</span>
+      <button id="banner-how" class="banner-btn" type="button">How</button>
+      <button id="banner-close" class="banner-btn" type="button" aria-label="Dismiss install hint">✕</button>
+    </div>
+
+    <header id="players">
+      <section class="card card-black" id="card-b" aria-label="Black player">
+        <div class="card-info">
+          <span class="card-name">BLACK</span>
+          <span class="card-timer" id="timer-b">00:00</span>
+        </div>
+        <div class="medallion" id="medal-b"></div>
+      </section>
+      <section class="card card-red" id="card-r" aria-label="Red player">
+        <div class="medallion" id="medal-r"></div>
+        <div class="card-info">
+          <span class="card-name">RED</span>
+          <span class="card-timer" id="timer-r">00:00</span>
+        </div>
+      </section>
+    </header>
+
+    <main id="board-area">
+      <canvas id="board" role="img" aria-label="Xiangqi board"></canvas>
+      <div id="toast" role="status" aria-live="polite" hidden></div>
+    </main>
+
+    <footer id="actions">
+      <div class="group">
+        <button class="rbtn" id="btn-undo" type="button" aria-label="Undo last move">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M19.5 12H5.5M11 6l-6 6 6 6"/></svg>
+        </button>
+      </div>
+      <div class="group tight">
+        <button class="rbtn" id="btn-back" type="button" aria-label="Step back one move">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M11.5 6l-6 6 6 6M18.5 6l-6 6 6 6"/></svg>
+        </button>
+        <button class="rbtn" id="btn-play" type="button" aria-label="Replay to the current position">
+          <svg class="ico-play" viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M8 5.2v13.6a.8.8 0 0 0 1.2.7l11-6.8a.8.8 0 0 0 0-1.4l-11-6.8A.8.8 0 0 0 8 5.2z"/></svg>
+          <svg class="ico-pause" viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M5 5.4v13.2a.8.8 0 0 0 1.3.6l9-6.6a.8.8 0 0 0 0-1.2l-9-6.6a.8.8 0 0 0-1.3.6zM17 5h2.8v14H17z"/></svg>
+        </button>
+        <button class="rbtn" id="btn-fwd" type="button" aria-label="Step forward one move">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M12.5 6l6 6-6 6M5.5 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <div class="group">
+        <button class="rbtn accent" id="btn-tabletop" type="button" aria-pressed="false" aria-label="Face-to-face tabletop mode">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M5 9.5a7.4 7.4 0 0 1 13.2-2.6M19 14.5a7.4 7.4 0 0 1-13.2 2.6"/><path class="ln" d="M18.6 3.2v4h-4M5.4 20.8v-4h4"/></svg>
+        </button>
+        <button class="rbtn" id="btn-menu" type="button" aria-haspopup="dialog" aria-label="Menu">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M5 7h14M5 12h14M5 17h14"/></svg>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <div id="overlay" hidden>
+    <div class="panel" id="panel-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title" hidden>
+      <h2 id="menu-title">Menu</h2>
+      <button class="plaque" id="menu-new" type="button">New Game</button>
+      <button class="plaque" id="menu-flip" type="button">Flip Board Sides</button>
+      <button class="plaque" id="menu-sound" type="button">Sound: On</button>
+      <button class="plaque" id="menu-install" type="button">Install on iPhone / iPad</button>
+      <button class="plaque quiet" data-close type="button">Close</button>
+      <p class="fine" id="menu-status"></p>
+    </div>
+
+    <div class="panel" id="panel-confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
+      <h2 id="confirm-title">New Game?</h2>
+      <p>The current game and its move history will be cleared.</p>
+      <div class="row">
+        <button class="plaque quiet" data-close type="button">Cancel</button>
+        <button class="plaque" id="confirm-yes" type="button">New Game</button>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-install" role="dialog" aria-modal="true" aria-labelledby="install-title" hidden>
+      <h2 id="install-title">Play Offline</h2>
+      <ol class="steps">
+        <li>Open this page in <b>Safari</b> on your iPhone or iPad.</li>
+        <li>Tap the <b>Share</b> button
+          <svg class="inline-ico" viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M12 15V3.5M7.5 7.5L12 3l4.5 4.5M6 11H5a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-1"/></svg>.</li>
+        <li>Choose <b>Add to Home Screen</b>, then <b>Add</b>.</li>
+        <li>Launch <b>Xiangqi</b> from your Home Screen. It runs full screen and needs no connection.</li>
+      </ol>
+      <p class="fine" id="install-status"></p>
+      <button class="plaque" data-close type="button">Done</button>
+    </div>
+
+    <div class="panel result" id="panel-result" role="dialog" aria-modal="true" aria-labelledby="result-title" hidden>
+      <div class="result-glyphs" id="result-glyphs" aria-hidden="true"></div>
+      <h2 id="result-title">Checkmate</h2>
+      <p id="result-text"></p>
+      <button class="plaque" id="result-new" type="button">New Game</button>
+      <div class="row">
+        <button class="plaque quiet" id="result-undo" type="button">Undo Move</button>
+        <button class="plaque quiet" data-close type="button">View Board</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/glyphs.js" defer></script>
+  <script src="/game.js" defer></script>
+  <script src="/ui.js" defer></script>
+</body>
+</html>

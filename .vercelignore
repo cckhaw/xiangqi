@@ -1,0 +1,6 @@
+# Only the static app is deployed; tooling stays in Git.
+.github
+tests
+scripts
+package.json
+README.md
