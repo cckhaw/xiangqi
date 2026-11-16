@@ -7,7 +7,7 @@
  *
  * Bump CACHE_VERSION on every release so installed apps pick up a clean cache.
  */
-const CACHE_VERSION = 'v1.1.0';
+const CACHE_VERSION = 'v1.1.1';
 const CACHE_NAME = `xiangqi-${CACHE_VERSION}`;
 
 const PRECACHE = [

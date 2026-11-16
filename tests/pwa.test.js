@@ -94,9 +94,15 @@ test('vercel.json: no-cache for sw.js and manifest.json, security headers, no gi
   assert.match(headersFor('/sw.js')['Cache-Control'], /no-cache/);
   assert.match(headersFor('/manifest.json')['Cache-Control'], /no-cache/);
   const all = headersFor('/(.*)');
-  for (const key of ['X-Content-Type-Options', 'X-Frame-Options', 'Referrer-Policy', 'Content-Security-Policy']) {
+  for (const key of ['X-Content-Type-Options', 'Referrer-Policy', 'Content-Security-Policy']) {
     assert.ok(all[key], 'missing security header ' + key);
   }
+  // Framing: only this origin and the games portal may embed the app. This is enforced with CSP
+  // frame-ancestors; an X-Frame-Options header would also block the portal, so it must not be set.
+  const ancestors = all['Content-Security-Policy'].match(/frame-ancestors ([^;]+)/);
+  assert.ok(ancestors, 'CSP must set frame-ancestors');
+  assert.deepEqual(ancestors[1].trim().split(/\s+/), ["'self'", 'https://games.khaw.cc']);
+  assert.equal(all['X-Frame-Options'], undefined, 'X-Frame-Options would block the games portal');
   assert.equal(vercel.git.deploymentEnabled, false);
 });
 
