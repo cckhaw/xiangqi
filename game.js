@@ -249,6 +249,7 @@
       this.board = board;
       this.turn = turn;
       this.history = [];
+      this.resigned = null;
       this._evaluate();
       return this;
     }
@@ -305,6 +306,7 @@
 
     /** Take back the last move. Returns its record, or null if none. */
     undo() {
+      if (this.resigned) return null;
       const record = this.history.pop();
       if (!record) return null;
       this.board[record.from] = record.piece;
@@ -326,10 +328,20 @@
       return board;
     }
 
+    /** `color` gives up: the other side wins. No effect once the game is over. */
+    resign(color) {
+      if (this.isOver || (color !== RED && color !== BLACK)) return false;
+      this.resigned = color;
+      this.status = 'resigned';
+      this.winner = other(color);
+      return true;
+    }
+
     toJSON() {
       return {
         fen: this.startFEN,
         moves: this.history.map((m) => [m.from, m.to]),
+        resigned: this.resigned,
       };
     }
 
@@ -339,10 +351,15 @@
       for (const [from, to] of (data && data.moves) || []) {
         if (!game.move(from, to)) throw new Error('Illegal move in saved game');
       }
+      if (data && data.resigned) game.resign(data.resigned);
       return game;
     }
 
     _evaluate() {
+      if (this.resigned) {
+        this.check = false;
+        return;
+      }
       this.check = inCheck(this.board, this.turn);
       if (hasLegalMove(this.board, this.turn)) {
         this.status = 'playing';

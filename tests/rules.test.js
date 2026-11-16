@@ -228,3 +228,20 @@ test('history: boardAt replays positions and JSON round-trips', () => {
   assert.equal(copy.turn, game.turn);
   assert.throws(() => Game.fromJSON({ moves: [[0, 80]] }));
 });
+
+test('resignation ends the game for the other side and survives JSON', () => {
+  const game = new Game();
+  game.move(sq('h2'), sq('e2'));
+  assert.equal(game.resign('x'), false);
+  assert.equal(game.resign('b'), true);
+  assert.equal(game.status, 'resigned');
+  assert.equal(game.winner, 'r');
+  assert.equal(game.isOver, true);
+  assert.deepEqual(game.legalMovesFrom(sq('a6')), []);
+  assert.equal(game.undo(), null);
+  assert.equal(game.resign('r'), false); // already over
+  const copy = Game.fromJSON(JSON.parse(JSON.stringify(game.toJSON())));
+  assert.equal(copy.status, 'resigned');
+  assert.equal(copy.winner, 'r');
+  assert.equal(new Game().resigned, null);
+});
