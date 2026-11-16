@@ -35,6 +35,7 @@
           <span class="card-timer" id="timer-b">00:00</span>
         </div>
         <div class="medallion" id="medal-b"></div>
+        <span class="tag" id="tag-b" hidden></span>
       </section>
       <section class="card card-red" id="card-r" aria-label="Red player">
         <div class="medallion" id="medal-r"></div>
@@ -42,6 +43,7 @@
           <span class="card-name">RED</span>
           <span class="card-timer" id="timer-r">00:00</span>
         </div>
+        <span class="tag" id="tag-r" hidden></span>
       </section>
     </header>
 
@@ -69,8 +71,9 @@
         </button>
       </div>
       <div class="group">
-        <button class="rbtn accent" id="btn-tabletop" type="button" aria-pressed="false" aria-label="Face-to-face tabletop mode">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M5 9.5a7.4 7.4 0 0 1 13.2-2.6M19 14.5a7.4 7.4 0 0 1-13.2 2.6"/><path class="ln" d="M18.6 3.2v4h-4M5.4 20.8v-4h4"/></svg>
+        <button class="rbtn accent" id="btn-tabletop" type="button" aria-pressed="false" aria-label="Face-to-face tabletop mode" title="Face-to-face tabletop mode">
+          <svg class="ico-flip" viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M5 9.5a7.4 7.4 0 0 1 13.2-2.6M19 14.5a7.4 7.4 0 0 1-13.2 2.6"/><path class="ln" d="M18.6 3.2v4h-4M5.4 20.8v-4h4"/></svg>
+          <svg class="ico-link" viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg>
         </button>
         <button class="rbtn" id="btn-menu" type="button" aria-haspopup="dialog" aria-label="Menu">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path class="ln" d="M5 7h14M5 12h14M5 17h14"/></svg>
@@ -82,8 +85,15 @@
   <div id="overlay" hidden>
     <div class="panel" id="panel-menu" role="dialog" aria-modal="true" aria-labelledby="menu-title" hidden>
       <h2 id="menu-title">Menu</h2>
-      <button class="plaque" id="menu-new" type="button">New Game</button>
-      <button class="plaque" id="menu-flip" type="button">Flip Board Sides</button>
+      <div class="seg" role="group" aria-label="Game mode">
+        <button class="plaque" id="menu-local" type="button" aria-pressed="true">Local<small>same table</small></button>
+        <button class="plaque" id="menu-online" type="button" aria-pressed="false">Online<small>far apart</small></button>
+      </div>
+      <button class="plaque only-local" id="menu-new" type="button">New Game</button>
+      <button class="plaque only-local" id="menu-flip" type="button">Flip Board Sides</button>
+      <button class="plaque only-online" id="menu-code" type="button">Game Code &amp; Invite</button>
+      <button class="plaque only-online" id="menu-resign" type="button">Resign</button>
+      <button class="plaque only-online" id="menu-leave" type="button">Leave Online Game</button>
       <button class="plaque" id="menu-sound" type="button">Sound: On</button>
       <button class="plaque" id="menu-install" type="button">Install on iPhone / iPad</button>
       <button class="plaque quiet" data-close type="button">Close</button>
@@ -92,7 +102,7 @@
 
     <div class="panel" id="panel-confirm" role="dialog" aria-modal="true" aria-labelledby="confirm-title" hidden>
       <h2 id="confirm-title">New Game?</h2>
-      <p>The current game and its move history will be cleared.</p>
+      <p id="confirm-text">The current game and its move history will be cleared.</p>
       <div class="row">
         <button class="plaque quiet" data-close type="button">Cancel</button>
         <button class="plaque" id="confirm-yes" type="button">New Game</button>
@@ -112,6 +122,41 @@
       <button class="plaque" data-close type="button">Done</button>
     </div>
 
+    <div class="panel" id="panel-online" role="dialog" aria-modal="true" aria-labelledby="online-title" hidden>
+      <h2 id="online-title">Play Online</h2>
+      <div data-view="choose">
+        <p>Play a friend in another place. One of you creates a game and shares the code; the other enters it.</p>
+        <button class="plaque" id="online-create" type="button">Create Game</button>
+        <div class="or"><span>or join a friend's game</span></div>
+        <input id="join-code" type="text" inputmode="text" maxlength="9" placeholder="ABC-DEF" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" aria-label="Challenge code">
+        <button class="plaque" id="online-join" type="button">Join Game</button>
+        <p class="fine err" id="join-error" hidden></p>
+        <button class="plaque quiet" data-close type="button">Close</button>
+      </div>
+      <div data-view="room" hidden>
+        <p class="fine">Challenge code</p>
+        <div class="code" id="room-code" aria-live="polite"></div>
+        <div class="row">
+          <button class="plaque" id="room-copy" type="button">Copy Code</button>
+          <button class="plaque" id="room-share" type="button">Share Invite</button>
+        </div>
+        <p class="status" id="room-status" role="status"></p>
+        <div class="row">
+          <button class="plaque quiet" id="room-leave" type="button">Cancel Game</button>
+          <button class="plaque quiet" id="room-close" data-close type="button">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="panel-request" role="alertdialog" aria-modal="true" aria-labelledby="request-title" hidden>
+      <h2 id="request-title">Request</h2>
+      <p id="request-text"></p>
+      <div class="row">
+        <button class="plaque quiet" id="request-no" type="button">Decline</button>
+        <button class="plaque" id="request-yes" type="button">Accept</button>
+      </div>
+    </div>
+
     <div class="panel result" id="panel-result" role="dialog" aria-modal="true" aria-labelledby="result-title" hidden>
       <div class="result-glyphs" id="result-glyphs" aria-hidden="true"></div>
       <h2 id="result-title">Checkmate</h2>
@@ -119,6 +164,7 @@
       <button class="plaque" id="result-new" type="button">New Game</button>
       <div class="row">
         <button class="plaque quiet" id="result-undo" type="button">Undo Move</button>
+        <button class="plaque quiet" id="result-leave" type="button" hidden>Leave Game</button>
         <button class="plaque quiet" data-close type="button">View Board</button>
       </div>
     </div>
@@ -126,6 +172,8 @@
 
   <script src="/glyphs.js" defer></script>
   <script src="/game.js" defer></script>
+  <script src="/net.js" defer></script>
+  <script src="/online.js" defer></script>
   <script src="/ui.js" defer></script>
 </body>
 </html>

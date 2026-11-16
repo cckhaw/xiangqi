@@ -100,9 +100,25 @@ test('vercel.json: no-cache for sw.js and manifest.json, security headers, no gi
   assert.equal(vercel.git.deploymentEnabled, false);
 });
 
+test('online relay: every broker the app may use is allowed by the CSP, and nothing else is', () => {
+  const Net = require('../net.js');
+  const rule = vercel.headers.find((r) => r.source === '/(.*)');
+  const csp = rule.headers.find((h) => h.key === 'Content-Security-Policy').value;
+  const connect = csp.match(/connect-src ([^;]+)/)[1].split(/\s+/);
+  const allowed = connect.filter((src) => src.startsWith('wss://')).sort();
+  const used = Net.BROKERS.map((url) => { const u = new URL(url); return `wss://${u.host}`; }).sort();
+  assert.deepEqual(allowed, used);
+  assert.ok(connect.includes("'self'"));
+  assert.ok(Net.BROKERS.every((url) => url.startsWith('wss://')), 'brokers must use TLS');
+  for (const file of ['/net.js', '/online.js']) assert.ok(precache.includes(file), file + ' not precached');
+  const net = read('net.js');
+  const urls = [...net.matchAll(/['"](wss?:\/\/[^'"]+)['"]/g)].map((m) => m[1]);
+  assert.deepEqual(urls.sort(), Net.BROKERS.slice().sort(), 'net.js contains URLs other than BROKERS');
+});
+
 test('zero external dependencies: no remote URLs, inline scripts or inline styles', () => {
   const xmlns = /http:\/\/www\.w3\.org\/2000\/svg/g;
-  for (const file of ['index.html', 'styles.css', 'ui.js', 'game.js', 'sw.js', 'manifest.json']) {
+  for (const file of ['index.html', 'styles.css', 'ui.js', 'game.js', 'net.js', 'online.js', 'sw.js', 'manifest.json']) {
     const text = read(file).replace(xmlns, '');
     assert.doesNotMatch(text, /https?:\/\//, file + ' references a remote URL');
     assert.doesNotMatch(text, /@import|url\(/, file + ' pulls in another resource');

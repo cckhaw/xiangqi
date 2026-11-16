@@ -7,7 +7,7 @@
  *
  * Bump CACHE_VERSION on every release so installed apps pick up a clean cache.
  */
-const CACHE_VERSION = 'v1.0.0';
+const CACHE_VERSION = 'v1.1.0';
 const CACHE_NAME = `xiangqi-${CACHE_VERSION}`;
 
 const PRECACHE = [
@@ -16,6 +16,8 @@ const PRECACHE = [
   '/styles.css',
   '/glyphs.js',
   '/game.js',
+  '/net.js',
+  '/online.js',
   '/ui.js',
   '/manifest.json',
   '/icons/icon-180.png',
